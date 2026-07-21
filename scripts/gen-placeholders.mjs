@@ -12,7 +12,7 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ONLY_MISSING = process.argv.includes('--only-missing');
 
 const FRAME = 128;
-const COLS = 8;
+const COLS = 16;
 const ROWS = 9;
 
 const PALETTES = {

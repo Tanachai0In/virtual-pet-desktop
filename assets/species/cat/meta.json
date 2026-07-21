@@ -1,19 +1,74 @@
 {
   "name": "cat",
   "displayName": "Mochi the Cat",
-  "frame": { "w": 128, "h": 128 },
-  "anchor": { "x": 64, "y": 120 },
+  "frame": {
+    "w": 128,
+    "h": 128
+  },
+  "anchor": {
+    "x": 64,
+    "y": 120
+  },
   "renderScale": 0.75,
-  "speeds": { "walk": 60, "run": 160 },
-  "headBox": { "x": 34, "y": 12, "w": 60, "h": 52 },
+  "speeds": {
+    "walk": 60,
+    "run": 160
+  },
+  "headBox": {
+    "x": 34,
+    "y": 12,
+    "w": 60,
+    "h": 52
+  },
   "animations": {
-    "idle": { "row": 0, "frames": 6, "fps": 8, "loop": true },
-    "walk": { "row": 1, "frames": 8, "fps": 12, "loop": true },
-    "run": { "row": 2, "frames": 6, "fps": 14, "loop": true },
-    "sit": { "row": 3, "frames": 6, "fps": 8, "loop": true, "loopFrom": 2 },
-    "sleep": { "row": 4, "frames": 4, "fps": 4, "loop": true },
-    "eat": { "row": 5, "frames": 6, "fps": 10, "loop": true },
-    "happy": { "row": 6, "frames": 6, "fps": 10, "loop": true },
-    "pounce": { "row": 7, "frames": 8, "fps": 14, "loop": false }
+    "idle": {
+      "row": 0,
+      "frames": 12,
+      "fps": 12,
+      "loop": true
+    },
+    "walk": {
+      "row": 1,
+      "frames": 16,
+      "fps": 24,
+      "loop": true
+    },
+    "run": {
+      "row": 2,
+      "frames": 12,
+      "fps": 24,
+      "loop": true
+    },
+    "sit": {
+      "row": 3,
+      "frames": 12,
+      "fps": 12,
+      "loop": true,
+      "loopFrom": 4
+    },
+    "sleep": {
+      "row": 4,
+      "frames": 8,
+      "fps": 8,
+      "loop": true
+    },
+    "eat": {
+      "row": 5,
+      "frames": 12,
+      "fps": 16,
+      "loop": true
+    },
+    "happy": {
+      "row": 6,
+      "frames": 12,
+      "fps": 16,
+      "loop": true
+    },
+    "pounce": {
+      "row": 7,
+      "frames": 16,
+      "fps": 24,
+      "loop": false
+    }
   }
 }

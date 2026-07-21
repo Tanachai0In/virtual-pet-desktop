@@ -3,7 +3,8 @@
 //  - rAF throttled by timestamp delta to the current tier's fps
 //  - tier 'off' cancels rAF entirely and polls a wake condition every 5s
 //    (used while the pet sleeps inside the house)
-export const TIERS = { active: 30, calm: 15, drowsy: 8, off: 0 };
+// calm stays at 24 so the 24fps walk/run sprite cycles render every frame.
+export const TIERS = { active: 30, calm: 24, drowsy: 8, off: 0 };
 
 const WAKE_POLL_MS = 5000;
 const MAX_DT = 0.15; // clamp so the drowsy tier never slows simulation
