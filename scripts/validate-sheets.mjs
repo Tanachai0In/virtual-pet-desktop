@@ -33,6 +33,29 @@ function regionTransparent(img, x0, y0, w, h) {
   return true;
 }
 
+const ALPHA_SOLID = 16; // ignore faint anti-aliasing halos
+
+/** Opaque-pixel bounding box of one frame cell, or null when empty. */
+function frameBBox(img, x0, y0, w, h) {
+  let minX = w, maxX = -1, minY = h, maxY = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (img.rgba[((y0 + y) * img.width + x0 + x) * 4 + 3] > ALPHA_SOLID) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  return maxX < 0 ? null : { minX, maxX, minY, maxY };
+}
+
+// Animations whose feet should stay on a stable baseline. Airborne anims
+// (run, pounce, emote) legitimately move vertically.
+const GROUNDED = new Set(['idle', 'walk', 'sit', 'sleep', 'eat', 'happy']);
+const BASELINE_JITTER_WARN = 14;
+
 function validateSpecies(name) {
   const dir = path.join(SPECIES_DIR, name);
   const metaFile = path.join(dir, 'meta.json');
@@ -78,10 +101,37 @@ function validateSpecies(name) {
     if (a.loopFrom !== undefined && (a.loopFrom < 0 || a.loopFrom >= a.frames)) {
       err(`${name}/${animName}: loopFrom ${a.loopFrom} outside 0..${a.frames - 1}`);
     }
-    // Used frames should contain some pixels; unused cells should be empty.
+    // Used frames should contain pixels, must not be clipped at the cell
+    // edges (a clipped frame means the source grid was sliced misaligned and
+    // pixels are lost), and grounded animations should keep a stable
+    // feet baseline so the pet doesn't jitter vertically in-game.
+    const bottoms = [];
     for (let i = 0; i < a.frames; i++) {
-      if (regionTransparent(img, i * fw, a.row * fh, fw, fh)) {
+      const box = frameBBox(img, i * fw, a.row * fh, fw, fh);
+      if (!box) {
         err(`${name}/${animName}: frame ${i} is fully transparent`);
+        continue;
+      }
+      const clips = [];
+      if (box.minY === 0) clips.push('top');
+      if (box.maxY === fh - 1) clips.push('bottom');
+      if (box.minX === 0) clips.push('left');
+      if (box.maxX === fw - 1) clips.push('right');
+      if (clips.length) {
+        err(
+          `${name}/${animName}: frame ${i} is clipped at the ${clips.join('+')} edge — ` +
+            'the character must sit fully inside its cell (re-slice or regenerate this row)'
+        );
+      }
+      bottoms.push(box.maxY);
+    }
+    if (GROUNDED.has(animName) && bottoms.length > 1) {
+      const jitter = Math.max(...bottoms) - Math.min(...bottoms);
+      if (jitter > BASELINE_JITTER_WARN) {
+        warn(
+          `${name}/${animName}: feet baseline drifts ${jitter}px across frames ` +
+            `(bottoms ${Math.min(...bottoms)}-${Math.max(...bottoms)}) — pet will bob vertically in-game`
+        );
       }
     }
     for (let i = a.frames; i < cols; i++) {
