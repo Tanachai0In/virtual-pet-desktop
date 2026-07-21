@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'unsafe-inline'"
+    />
+    <title>Rename pet</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: transparent;
+        font-family: system-ui, sans-serif;
+        user-select: none;
+      }
+      .card {
+        box-sizing: border-box;
+        margin: 6px;
+        padding: 16px;
+        height: calc(100vh - 12px);
+        background: #fffdf8;
+        border: 1px solid #e6d8c8;
+        border-radius: 14px;
+        box-shadow: 0 4px 18px rgba(80, 60, 40, 0.18);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #6b5a4a;
+      }
+      input {
+        font-size: 15px;
+        padding: 7px 10px;
+        border: 1px solid #d8c8b4;
+        border-radius: 8px;
+        outline: none;
+        background: #fff;
+        color: #4a3f35;
+      }
+      input:focus {
+        border-color: #f2a5c8;
+        box-shadow: 0 0 0 2px rgba(242, 165, 200, 0.3);
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: auto;
+      }
+      button {
+        font-size: 13px;
+        padding: 6px 14px;
+        border-radius: 8px;
+        border: 1px solid #d8c8b4;
+        background: #fff;
+        color: #6b5a4a;
+        cursor: pointer;
+      }
+      button.primary {
+        background: #f2a5c8;
+        border-color: #e890b8;
+        color: #fff;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <label for="name">🐾 ตั้งชื่อสัตว์เลี้ยง / Pet name</label>
+      <input id="name" type="text" maxlength="20" spellcheck="false" autofocus />
+      <div class="row">
+        <button id="cancel">Cancel</button>
+        <button id="ok" class="primary">Save</button>
+      </div>
+    </div>
+    <script type="module" src="rename-dialog.js"></script>
+  </body>
+</html>

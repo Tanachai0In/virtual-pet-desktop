@@ -67,6 +67,7 @@ async function boot() {
   window.addEventListener('pagehide', () => api.saveState(world.stateForSave()));
 
   api.speciesChanged?.(world.species);
+  api.nameChanged?.(world.pet.name);
   loop.start();
 }
 

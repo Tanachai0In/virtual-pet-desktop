@@ -32,5 +32,8 @@
 - [ ] เปิดทิ้งไว้ 1 ชม. → RAM ไม่โตขึ้นเรื่อยๆ
 
 ## Tray
-- [ ] เมนูครบ: Feed (3 ชนิด), Play ball, Send home, Wake up, Choose pet (radio ตรง species ปัจจุบัน), Launch at startup, Show/Hide, Quit
+- [ ] เมนูครบ: Feed (3 ชนิด), Play ball, Send home, Wake up, Choose pet (radio ตรง species ปัจจุบัน), Rename…, Launch at startup, Show/Hide, Quit
+- [ ] หัวเมนู + tooltip แสดงชื่อสัตว์เลี้ยงปัจจุบัน
+- [ ] Rename… → dialog เด้งกลางจอ พร้อมชื่อเดิม, Enter = save / Esc = ยกเลิก, ชื่อใหม่โผล่ใน stat bubble (hover ตัว) + หัวเมนู tray, ปิดเปิดแอปแล้วชื่อยังอยู่
+- [ ] Rename ด้วยชื่อว่าง/ช่องว่างล้วน → ไม่เปลี่ยนชื่อ
 - [ ] Quit จาก tray → state ถูก save (เปิดใหม่ค่าเดิม)

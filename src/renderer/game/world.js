@@ -241,7 +241,7 @@ export function createWorld({ canvas, sheets, common, save, api, rng = Math.rand
       }
     },
 
-    /** Tray / menu actions. @param {{type:string, food?:string, species?:string}} action */
+    /** Tray / menu actions. @param {{type:string, food?:string, species?:string, name?:string}} action */
     handleAction(action) {
       switch (action.type) {
         case 'feed': {
@@ -269,6 +269,13 @@ export function createWorld({ canvas, sheets, common, save, api, rng = Math.rand
           break;
         case 'set-species':
           if (action.species) this.setSpecies(action.species);
+          break;
+        case 'rename':
+          if (typeof action.name === 'string' && action.name.trim()) {
+            this.pet.name = action.name.trim();
+            this.api.nameChanged?.(this.pet.name);
+            this.api.saveState?.(this.stateForSave());
+          }
           break;
       }
     },

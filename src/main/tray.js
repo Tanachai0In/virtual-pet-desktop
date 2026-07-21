@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setAutostart, getAutostart } from './autolaunch.js';
 import { dockWindow } from './window.js';
+import { openRenameDialog } from './rename.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ASSETS = path.join(__dirname, '../../assets');
@@ -40,6 +41,7 @@ export function createTray(win) {
   tray.setToolTip('Virtual Pet');
 
   let currentSpecies = 'cat';
+  let currentName = 'Mochi';
   let visible = true;
 
   const send = (/** @type {string} */ type, /** @type {object} */ payload = {}) => {
@@ -48,7 +50,7 @@ export function createTray(win) {
 
   const rebuild = () => {
     const menu = Menu.buildFromTemplate([
-      { label: 'Virtual Pet', enabled: false },
+      { label: `🐾 ${currentName}`, enabled: false },
       { type: 'separator' },
       {
         label: 'Feed',
@@ -75,6 +77,7 @@ export function createTray(win) {
           },
         })),
       },
+      { label: '✏️ Rename…', click: () => openRenameDialog(win, () => currentName) },
       {
         label: 'Launch at startup',
         type: 'checkbox',
@@ -104,6 +107,15 @@ export function createTray(win) {
   ipcMain.on('species-changed', (_e, species) => {
     if (typeof species === 'string' && species !== currentSpecies) {
       currentSpecies = species;
+      rebuild();
+    }
+  });
+
+  // Keep the header + tooltip in sync with the pet's name.
+  ipcMain.on('name-changed', (_e, name) => {
+    if (typeof name === 'string' && name && name !== currentName) {
+      currentName = name;
+      tray?.setToolTip(`Virtual Pet — ${name}`);
       rebuild();
     }
   });

@@ -14,6 +14,12 @@ contextBridge.exposeInMainWorld('petAPI', {
   publishHitRects: (rects) => ipcRenderer.send('publish-hit-rects', rects),
   /** Tell the tray the active species changed (syncs the radio menu). */
   speciesChanged: (species) => ipcRenderer.send('species-changed', species),
+  /** Tell the tray the pet's name changed (tooltip + rename dialog default). */
+  nameChanged: (name) => ipcRenderer.send('name-changed', name),
+  /** Rename dialog window only: */
+  onRenameInit: (fn) => ipcRenderer.on('rename-init', (_e, init) => fn(init)),
+  submitRename: (name) => ipcRenderer.send('rename-submit', name),
+  cancelRename: () => ipcRenderer.send('rename-cancel'),
   /** Tray / menu actions: feed, play-ball, send-home, wake-up, set-species. */
   onAction: (fn) => ipcRenderer.on('pet-action', (_e, action) => fn(action)),
   /** Linux fallback: cursor position in window coordinates at 10 Hz. */
