@@ -97,6 +97,37 @@ function validateSpecies(name) {
   const anims = meta.animations ?? {};
   if (Object.keys(anims).length === 0) err(`${name}: meta.json has no animations`);
 
+  // Art-consistency check: flat script-generated placeholder rows have a
+  // handful of distinct colors, real (AI) art has hundreds. A sheet that
+  // mixes both makes the pet visibly change art style mid-animation.
+  const colorCounts = {};
+  for (const [animName, a] of Object.entries(anims)) {
+    if (a.row >= rows || a.frames > cols) continue;
+    const colors = new Set();
+    for (let i = 0; i < a.frames; i++) {
+      for (let y = 0; y < fh; y += 2) {
+        for (let x = 0; x < fw; x += 2) {
+          const o = (((a.row * fh + y) * img.width) + i * fw + x) * 4;
+          if (img.rgba[o + 3] > 200) {
+            colors.add(((img.rgba[o] >> 3) << 10) | ((img.rgba[o + 1] >> 3) << 5) | (img.rgba[o + 2] >> 3));
+          }
+        }
+      }
+    }
+    colorCounts[animName] = colors.size;
+  }
+  const counts = Object.values(colorCounts);
+  if (counts.length && Math.max(...counts) > 300) {
+    for (const [animName, n] of Object.entries(colorCounts)) {
+      if (n < 30) {
+        err(
+          `${name}/${animName}: row looks like a flat placeholder (${n} colors) while other rows ` +
+            'are detailed art — the pet will flicker between art styles; replace this row with real art'
+        );
+      }
+    }
+  }
+
   for (const [animName, a] of Object.entries(anims)) {
     if (a.row >= rows) {
       err(`${name}/${animName}: row ${a.row} outside sheet (${rows} rows)`);
