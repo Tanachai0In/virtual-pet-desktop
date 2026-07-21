@@ -1,0 +1,59 @@
+{
+  "name": "virtual-pet-desktop",
+  "version": "0.1.0",
+  "description": "A friendly chibi desktop pet that lives on a bar just above your taskbar — pet it, feed it, play ball with it.",
+  "type": "module",
+  "main": "src/main/index.js",
+  "license": "MIT",
+  "author": "virtual-pet-desktop contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tanachai0In/virtual-pet-desktop.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "postinstall": "node scripts/gen-placeholders.mjs --only-missing",
+    "start": "electron .",
+    "lint": "eslint . && tsc --noEmit -p jsconfig.json",
+    "test": "node --test \"test/*.test.mjs\"",
+    "sheets": "node scripts/validate-sheets.mjs",
+    "placeholders": "node scripts/gen-placeholders.mjs",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.virtualpet.desktop",
+    "productName": "Virtual Pet Desktop",
+    "files": [
+      "src/**",
+      "assets/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "assets/icons/app-256.png"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "assets/icons/app-512.png",
+      "category": "public.app-category.entertainment"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "assets/icons/app-512.png",
+      "category": "Game"
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.7.0",
+    "@types/node": "^20.14.0",
+    "electron": "^31.2.0",
+    "electron-builder": "^24.13.3",
+    "eslint": "^9.7.0",
+    "typescript": "^5.5.3"
+  }
+}

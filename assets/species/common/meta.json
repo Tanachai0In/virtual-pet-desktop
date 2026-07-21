@@ -1,0 +1,11 @@
+{
+  "house": {
+    "frame": { "w": 256, "h": 256 },
+    "variants": { "open": 0, "closed": 1, "sleeping": 2 },
+    "renderHeight": 150
+  },
+  "items": {
+    "size": 64,
+    "cells": { "ball": 0, "fish": 1, "bone": 2, "bowl": 3, "cookie": 4, "heart": 5 }
+  }
+}
