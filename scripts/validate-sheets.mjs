@@ -14,6 +14,15 @@ const SPECIES_DIR = path.join(ROOT, 'assets/species');
 let errors = 0;
 let warnings = 0;
 
+// These source grids previously used a 256px cell as if it were 128px,
+// clipping the listed animation frames at cell edges. Keep a strict margin
+// check here so a half-cell offset cannot quietly ship again.
+const MIN_FRAME_PADDING = 10;
+const REPAIRED_ANIMATIONS = {
+  cat: new Set(['idle', 'sit', 'sleep', 'eat', 'happy']),
+  dog: new Set(['idle', 'sleep']),
+};
+
 const err = (msg) => {
   console.error(`ERROR: ${msg}`);
   errors++;
@@ -55,7 +64,6 @@ function frameBBox(img, x0, y0, w, h) {
 // (run, pounce, emote) legitimately move vertically.
 const GROUNDED = new Set(['idle', 'walk', 'sit', 'sleep', 'eat', 'happy']);
 const BASELINE_JITTER_WARN = 14;
-
 function validateSpecies(name) {
   const dir = path.join(SPECIES_DIR, name);
   const metaFile = path.join(dir, 'meta.json');
@@ -124,13 +132,26 @@ function validateSpecies(name) {
         );
       }
       bottoms.push(box.maxY);
+      if (REPAIRED_ANIMATIONS[name]?.has(animName)) {
+        if (
+          box.minX < MIN_FRAME_PADDING ||
+          box.minY < MIN_FRAME_PADDING ||
+          box.maxX > fw - 1 - MIN_FRAME_PADDING ||
+          box.maxY > fh - 1 - MIN_FRAME_PADDING
+        ) {
+          err(
+            `${name}/${animName}: frame ${i} exceeds ${MIN_FRAME_PADDING}px safe padding ` +
+              `(${box.minX},${box.minY}-${box.maxX},${box.maxY})`
+          );
+        }
+      }
     }
     if (GROUNDED.has(animName) && bottoms.length > 1) {
       const jitter = Math.max(...bottoms) - Math.min(...bottoms);
       if (jitter > BASELINE_JITTER_WARN) {
         warn(
           `${name}/${animName}: feet baseline drifts ${jitter}px across frames ` +
-            `(bottoms ${Math.min(...bottoms)}-${Math.max(...bottoms)}) — pet will bob vertically in-game`
+          `(bottoms ${Math.min(...bottoms)}-${Math.max(...bottoms)}) — pet will bob vertically in-game`
         );
       }
     }

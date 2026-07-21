@@ -3,13 +3,20 @@
 // the box before AI-generated art exists. Pure Node — no dependencies.
 //
 // Usage: node scripts/gen-placeholders.mjs [--only-missing]
+//        node scripts/gen-placeholders.mjs --species=cat --animations=idle,sit
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { encodePNG, Raster } from './lib/png.mjs';
+import { decodePNG, encodePNG, Raster } from './lib/png.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ONLY_MISSING = process.argv.includes('--only-missing');
+const speciesArg = process.argv.find((arg) => arg.startsWith('--species='));
+const animationsArg = process.argv.find((arg) => arg.startsWith('--animations='));
+const SELECTED_SPECIES = speciesArg ? new Set(speciesArg.slice('--species='.length).split(',')) : null;
+const SELECTED_ANIMATIONS = animationsArg
+  ? new Set(animationsArg.slice('--animations='.length).split(','))
+  : null;
 
 const FRAME = 128;
 const COLS = 16;
@@ -37,7 +44,8 @@ const EYE_SHINE = [255, 255, 255, 255];
 const BLUSH = [246, 170, 180, 160];
 
 /**
- * Draw one chibi placeholder frame. (cx=64, feet at y=120 per the contract.)
+ * Draw one chibi placeholder frame. The artwork stays inside a 10px safe
+ * margin, matching the resized 256px-source-grid contract.
  * The look is intentionally simple — a big-headed blob with ears — but it
  * animates recognizably and respects anchors, so real art drops in cleanly.
  */
@@ -45,7 +53,7 @@ function drawPetFrame(r, species, anim, i, n) {
   const p = PALETTES[species];
   const phase = (i / n) * Math.PI * 2;
   const cx = 64;
-  const floor = 120;
+  const floor = 116;
 
   let headBob = 0;
   let bodyLift = 0;
@@ -136,7 +144,9 @@ function drawPetFrame(r, species, anim, i, n) {
   }
 
   // body (small — chibi proportions)
-  r.fillEllipse(cx, bodyY, 22, sitting ? 18 : 15, p.body);
+  // A seated body is intentionally a little shorter so it retains the same
+  // 10px bottom safe margin as the standing pose.
+  r.fillEllipse(cx, bodyY, 22, sitting ? 14 : 15, p.body);
   r.fillEllipse(cx + 4, bodyY + 2, 12, 8, [255, 255, 255, 90]); // belly light
 
   // ears
@@ -175,9 +185,14 @@ function drawPetFrame(r, species, anim, i, n) {
   r.fillEllipse(headX + 19, eyeY + 8, 5, 3, BLUSH);
 }
 
-function genSpeciesSheet(species, meta) {
+function genSpeciesSheet(species, meta, existing) {
   const sheet = new Raster(COLS * FRAME, ROWS * FRAME);
+  if (existing) sheet.data.set(existing.rgba);
   for (const [animName, anim] of Object.entries(meta.animations)) {
+    if (SELECTED_ANIMATIONS && !SELECTED_ANIMATIONS.has(animName)) continue;
+    // Clear the complete output row, including unused cells. This prevents
+    // pixels from a bad source-grid slice leaking into a repaired animation.
+    sheet.data.fill(0, anim.row * FRAME * sheet.width * 4, (anim.row + 1) * FRAME * sheet.width * 4);
     for (let i = 0; i < anim.frames; i++) {
       const frame = new Raster(FRAME, FRAME);
       drawPetFrame(frame, species, animName, i, anim.frames);
@@ -283,15 +298,20 @@ function writeIfNeeded(file, gen) {
 }
 
 for (const species of ['cat', 'dog']) {
+  if (SELECTED_SPECIES && !SELECTED_SPECIES.has(species)) continue;
   const metaFile = path.join(ROOT, 'assets/species', species, 'meta.json');
   const meta = JSON.parse(fs.readFileSync(metaFile, 'utf8'));
-  writeIfNeeded(path.join(ROOT, 'assets/species', species, 'sheet.png'), () =>
-    genSpeciesSheet(species, meta)
-  );
+  const sheetFile = path.join(ROOT, 'assets/species', species, 'sheet.png');
+  writeIfNeeded(sheetFile, () => {
+    const existing = fs.existsSync(sheetFile) ? decodePNG(fs.readFileSync(sheetFile)) : null;
+    return genSpeciesSheet(species, meta, existing);
+  });
 }
-writeIfNeeded(path.join(ROOT, 'assets/species/common/house.png'), genHouse);
-writeIfNeeded(path.join(ROOT, 'assets/species/common/items.png'), genItems);
-writeIfNeeded(path.join(ROOT, 'assets/icons/tray-32.png'), () => genIcon(32));
-writeIfNeeded(path.join(ROOT, 'assets/icons/app-256.png'), () => genIcon(256));
-writeIfNeeded(path.join(ROOT, 'assets/icons/app-512.png'), () => genIcon(512));
+if (!SELECTED_SPECIES) {
+  writeIfNeeded(path.join(ROOT, 'assets/species/common/house.png'), genHouse);
+  writeIfNeeded(path.join(ROOT, 'assets/species/common/items.png'), genItems);
+  writeIfNeeded(path.join(ROOT, 'assets/icons/tray-32.png'), () => genIcon(32));
+  writeIfNeeded(path.join(ROOT, 'assets/icons/app-256.png'), () => genIcon(256));
+  writeIfNeeded(path.join(ROOT, 'assets/icons/app-512.png'), () => genIcon(512));
+}
 console.log('placeholder assets ready.');
