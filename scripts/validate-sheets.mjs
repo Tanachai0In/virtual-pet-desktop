@@ -20,7 +20,7 @@ let warnings = 0;
 const MIN_FRAME_PADDING = 10;
 const REPAIRED_ANIMATIONS = {
   cat: new Set(['idle', 'sit', 'sleep', 'eat', 'happy']),
-  dog: new Set(['idle', 'sleep']),
+  dog: new Set(['idle', 'run', 'sleep']),
 };
 
 const err = (msg) => {
