@@ -41,7 +41,8 @@ export function drawHouse(ctx, house, common, floorY) {
   const frame = common.meta.house.frame;
   const idx = common.meta.house.variants[house.variant] ?? 0;
   ctx.save();
-  ctx.imageSmoothingEnabled = false;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(
     common.house,
     idx * frame.w,

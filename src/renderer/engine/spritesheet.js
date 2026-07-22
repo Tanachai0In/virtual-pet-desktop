@@ -62,7 +62,8 @@ export function drawItem(ctx, common, cellName, x, y, size = 40, alpha = 1) {
   if (cell === undefined) return;
   const s = common.meta.items.size;
   ctx.save();
-  ctx.imageSmoothingEnabled = false;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   ctx.globalAlpha = alpha;
   ctx.drawImage(common.items, cell * s, 0, s, s, Math.round(x - size / 2), Math.round(y - size / 2), size, size);
   ctx.restore();

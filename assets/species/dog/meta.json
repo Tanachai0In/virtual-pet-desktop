@@ -25,7 +25,8 @@
       "row": 0,
       "frames": 12,
       "fps": 12,
-      "loop": true
+      "loop": true,
+      "scale": 1.2
     },
     "walk": {
       "row": 1,
@@ -37,14 +38,16 @@
       "row": 2,
       "frames": 12,
       "fps": 24,
-      "loop": true
+      "loop": true,
+      "scale": 1.2
     },
     "sit": {
       "row": 3,
       "frames": 12,
       "fps": 12,
       "loop": true,
-      "loopFrom": 4
+      "loopFrom": 4,
+      "scale": 0.9
     },
     "sleep": {
       "row": 4,
@@ -56,7 +59,8 @@
       "row": 5,
       "frames": 12,
       "fps": 16,
-      "loop": true
+      "loop": true,
+      "scale": 1.05
     },
     "happy": {
       "row": 6,
@@ -68,7 +72,8 @@
       "row": 7,
       "frames": 16,
       "fps": 24,
-      "loop": false
+      "loop": false,
+      "scale": 1.1
     }
   }
 }

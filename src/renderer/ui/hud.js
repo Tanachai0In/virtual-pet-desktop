@@ -37,7 +37,7 @@ function drawStatBubble(ctx, world, body) {
   const pet = world.pet;
   const w = 96;
   const h = 58;
-  const x = Math.round(Math.min(Math.max(body.x + body.w / 2 - w / 2, 4), world.canvas.width - w - 4));
+  const x = Math.round(Math.min(Math.max(body.x + body.w / 2 - w / 2, 4), world.viewW - w - 4));
   const y = Math.round(Math.max(body.y - h - 8, 2));
 
   ctx.save();

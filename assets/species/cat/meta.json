@@ -25,7 +25,8 @@
       "row": 0,
       "frames": 12,
       "fps": 12,
-      "loop": true
+      "loop": true,
+      "scale": 1.15
     },
     "walk": {
       "row": 1,
@@ -37,7 +38,8 @@
       "row": 2,
       "frames": 12,
       "fps": 24,
-      "loop": true
+      "loop": true,
+      "scale": 1.05
     },
     "sit": {
       "row": 3,
@@ -56,19 +58,22 @@
       "row": 5,
       "frames": 12,
       "fps": 16,
-      "loop": true
+      "loop": true,
+      "scale": 1.2
     },
     "happy": {
       "row": 6,
       "frames": 12,
       "fps": 16,
-      "loop": true
+      "loop": true,
+      "scale": 1.1
     },
     "pounce": {
       "row": 7,
       "frames": 16,
       "fps": 24,
-      "loop": false
+      "loop": false,
+      "scale": 1.05
     }
   }
 }

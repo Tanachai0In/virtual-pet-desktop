@@ -24,9 +24,22 @@ const BALL_R = 14;
  *   save: any,
  *   api: any,
  *   rng?: () => number,
+ *   viewW?: number,
+ *   viewH?: number,
+ *   dpr?: number,
  * }} opts
  */
-export function createWorld({ canvas, sheets, common, save, api, rng = Math.random }) {
+export function createWorld({
+  canvas,
+  sheets,
+  common,
+  save,
+  api,
+  rng = Math.random,
+  viewW = canvas.width,
+  viewH = canvas.height,
+  dpr = 1,
+}) {
   const ctx2d = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
 
   const world = {
@@ -36,9 +49,14 @@ export function createWorld({ canvas, sheets, common, save, api, rng = Math.rand
     api,
     rng,
     species: sheets[save.species] ? save.species : Object.keys(sheets)[0],
-    floorY: canvas.height - FLOOR_PAD,
+    // Logical (CSS-pixel) viewport; the canvas backing store is this times
+    // dpr so sprites stay crisp on hi-dpi screens.
+    viewW,
+    viewH,
+    dpr,
+    floorY: viewH - FLOOR_PAD,
     minX: EDGE_MARGIN,
-    maxX: canvas.width - EDGE_MARGIN,
+    maxX: viewW - EDGE_MARGIN,
     /** @type {import('./food.js').FoodItem[]} */
     foods: [],
     /** @type {import('./ball.js').Ball | null} */
@@ -57,11 +75,19 @@ export function createWorld({ canvas, sheets, common, save, api, rng = Math.rand
     /** ball drag state */
     drag: { active: false, history: /** @type {{x:number,y:number,t:number}[]} */ ([]) },
 
-    resize() {
-      this.floorY = canvas.height - FLOOR_PAD;
-      this.maxX = canvas.width - EDGE_MARGIN;
+    /**
+     * Set the logical viewport (CSS px) and pixel density. The caller sizes
+     * the canvas backing store to viewW*dpr × viewH*dpr.
+     * @param {number} [w] @param {number} [h] @param {number} [dpr]
+     */
+    resize(w = this.viewW, h = this.viewH, dpr = this.dpr) {
+      this.viewW = w;
+      this.viewH = h;
+      this.dpr = dpr;
+      this.floorY = h - FLOOR_PAD;
+      this.maxX = w - EDGE_MARGIN;
       this.house = createHouse({
-        barW: canvas.width,
+        barW: w,
         side: this.settings.houseSide,
         renderHeight: this.common.meta.house.renderHeight ?? 150,
       });
@@ -110,7 +136,8 @@ export function createWorld({ canvas, sheets, common, save, api, rng = Math.rand
     },
 
     draw() {
-      ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+      ctx2d.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+      ctx2d.clearRect(0, 0, this.viewW, this.viewH);
       drawHouse(ctx2d, this.house, this.common, this.floorY);
       for (const f of this.foods) {
         const def = /** @type {any} */ (this.common.meta.items.cells);

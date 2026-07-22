@@ -20,11 +20,18 @@ async function boot() {
   Object.assign(save, needs);
 
   const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById('stage'));
+  // Hi-dpi: backing store is CSS size × devicePixelRatio; world draws in
+  // CSS px through a dpr transform, so sprites render at native density.
   const fit = () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    return { w, h, dpr };
   };
-  fit();
 
   const [common, ...sheetList] = await Promise.all([
     loadCommon(),
@@ -34,7 +41,17 @@ async function boot() {
   const sheets = {};
   for (const sheet of sheetList) sheets[sheet.name] = sheet;
 
-  const world = createWorld({ canvas, sheets, common, save, api });
+  const dims = fit();
+  const world = createWorld({
+    canvas,
+    sheets,
+    common,
+    save,
+    api,
+    viewW: dims.w,
+    viewH: dims.h,
+    dpr: dims.dpr,
+  });
   const input = createInput({ world, api, platform });
 
   const loop = createLoop({
@@ -56,8 +73,8 @@ async function boot() {
   });
 
   window.addEventListener('resize', () => {
-    fit();
-    world.resize();
+    const d = fit();
+    world.resize(d.w, d.h, d.dpr);
     loop.nudge();
   });
 
