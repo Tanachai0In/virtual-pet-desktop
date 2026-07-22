@@ -20,6 +20,7 @@
     "test": "node --test \"test/*.test.mjs\"",
     "sheets": "node scripts/validate-sheets.mjs",
     "placeholders": "node scripts/gen-placeholders.mjs",
+    "stabilize": "node scripts/stabilize-sheets.mjs",
     "dist": "electron-builder"
   },
   "build": {

@@ -26,7 +26,7 @@
       "frames": 12,
       "fps": 12,
       "loop": true,
-      "scale": 1.2
+      "scale": 1.21
     },
     "walk": {
       "row": 1,
@@ -39,7 +39,7 @@
       "frames": 12,
       "fps": 24,
       "loop": true,
-      "scale": 1.2
+      "scale": 1.15
     },
     "sit": {
       "row": 3,
@@ -47,33 +47,35 @@
       "fps": 12,
       "loop": true,
       "loopFrom": 4,
-      "scale": 0.9
+      "scale": 1.08
     },
     "sleep": {
       "row": 4,
       "frames": 8,
       "fps": 8,
-      "loop": true
+      "loop": true,
+      "scale": 1.35
     },
     "eat": {
       "row": 5,
       "frames": 12,
       "fps": 16,
       "loop": true,
-      "scale": 1.05
+      "scale": 1.14
     },
     "happy": {
       "row": 6,
       "frames": 12,
       "fps": 16,
-      "loop": true
+      "loop": true,
+      "scale": 1.13
     },
     "pounce": {
       "row": 7,
       "frames": 16,
       "fps": 24,
       "loop": false,
-      "scale": 1.1
+      "scale": 1.15
     }
   }
 }
