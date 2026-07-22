@@ -49,7 +49,7 @@
 
 - `headBox` = โซนลูบหัว (พิกัดใน frame 128×128, แอปแปลง scale/mirror ให้เอง)
 - `loopFrom` = เล่น 0..N ครั้งแรกจบแล้ววนเฉพาะ frame ตั้งแต่ index นี้
-- `scale` (ต่อ animation, optional, default 1.0) = ตัวคูณขนาดตอน render ใช้ normalize เมื่อ art แต่ละแถววาดตัวละครมาขนาดไม่เท่ากัน (เช่น แถว idle ตัวเล็กกว่าแถว walk → ใส่ `"scale": 1.15`) — จุดยึดยังเป็นเท้าที่ anchor เหมือนเดิม
+- **ห้ามมี `scale` ต่อ animation** — ทุกแถวต้อง normalize ขนาดลงใน pixel ของ `sheet.png` รอบ anchor เดียวกันก่อน ship (รัน `npm run stabilize`) เพื่อให้เปลี่ยนท่าแล้วตัวไม่เดี๋ยวเล็กเดี๋ยวใหญ่
 - animation ชื่อ `idle` ต้องมีเสมอ (ใช้เป็น fallback)
 
 ## Common sheet (`assets/species/common/`)

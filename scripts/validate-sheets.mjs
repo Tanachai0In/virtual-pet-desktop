@@ -17,7 +17,9 @@ let warnings = 0;
 // These source grids previously used a 256px cell as if it were 128px,
 // clipping the listed animation frames at cell edges. Keep a strict margin
 // check here so a half-cell offset cannot quietly ship again.
-const MIN_FRAME_PADDING = 10;
+// Eight pixels keeps antialiased outlines clear of neighboring cells while
+// leaving room for the documented feet anchor at y=120.
+const MIN_FRAME_PADDING = 8;
 const REPAIRED_ANIMATIONS = {
   cat: new Set(['idle', 'sit', 'sleep', 'eat', 'happy']),
   dog: new Set(['idle', 'run', 'sleep']),
@@ -139,6 +141,12 @@ function validateSpecies(name) {
     }
     if (a.loopFrom !== undefined && (a.loopFrom < 0 || a.loopFrom >= a.frames)) {
       err(`${name}/${animName}: loopFrom ${a.loopFrom} outside 0..${a.frames - 1}`);
+    }
+    if (a.scale !== undefined) {
+      err(
+        `${name}/${animName}: per-animation scale is not allowed — normalize pixels around the shared anchor ` +
+        'with npm run stabilize so state changes keep one fixed render size'
+      );
     }
     // Used frames should contain pixels, must not be clipped at the cell
     // edges (a clipped frame means the source grid was sliced misaligned and

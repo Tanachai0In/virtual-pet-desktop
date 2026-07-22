@@ -2,7 +2,7 @@
 // Sprite animation frame math (pure) + Animator that owns an entity's
 // current animation. Draw happens against a loaded sprite sheet.
 
-/** @typedef {{ row: number, frames: number, fps: number, loop: boolean, loopFrom?: number, scale?: number }} AnimMeta */
+/** @typedef {{ row: number, frames: number, fps: number, loop: boolean, loopFrom?: number }} AnimMeta */
 
 /**
  * Frame index for an animation at elapsed time t (seconds). Pure.
@@ -92,9 +92,9 @@ export class Animator {
     const fi = this.frameIndex;
     const fw = meta.frame.w;
     const fh = meta.frame.h;
-    // Per-animation scale normalizes character size across rows that were
-    // drawn at slightly different proportions (AI art drifts per row).
-    const s = meta.renderScale * (a.scale ?? 1);
+    // Every row is normalized into the PNG around the shared feet anchor.
+    // A single runtime scale prevents a visible size pop when states change.
+    const s = meta.renderScale;
     const sx = fi * fw;
     const sy = a.row * fh;
     ctx.save();

@@ -9,9 +9,9 @@
 //   3. normalizes per-frame size toward the row's median pixel mass
 //      (clamped so intended squash/stretch survives)
 //
-// It then rewrites each animation's cross-row "scale" in meta.json from the
-// square root of the walk row's median mass over the row's median mass, so
-// the character reads as the same size in every pose.
+// Finally it normalizes every animation row to the walk row's visual mass in
+// the PNG itself. Runtime rendering therefore always uses one renderScale;
+// changing state cannot make the pet visibly shrink or grow.
 //
 // Usage: node scripts/stabilize-sheets.mjs [--dry]
 import fs from 'node:fs';
@@ -93,6 +93,36 @@ function scaleRaster(src, sw, sh, s) {
 
 const median = (arr) => [...arr].sort((a, b) => a - b)[Math.floor(arr.length / 2)];
 
+/** Largest scale that keeps an analyzed frame inside the sheet safe area. */
+function maxScaleAtAnchor(st, w, h, anchor) {
+  const limits = [];
+  if (st.minX < anchor.x) limits.push((anchor.x - SAFE_PAD) / (anchor.x - st.minX));
+  if (st.maxX > anchor.x) limits.push((w - 1 - SAFE_PAD - anchor.x) / (st.maxX - anchor.x));
+  if (st.minY < anchor.y) limits.push((anchor.y - SAFE_PAD) / (anchor.y - st.minY));
+  if (st.maxY > anchor.y) limits.push((h - 1 - SAFE_PAD - anchor.y) / (st.maxY - anchor.y));
+  return Math.min(...limits, Infinity);
+}
+
+/** Scale a frame around the documented feet anchor, preserving transparent padding. */
+function scaleFrameAtAnchor(frame, w, h, anchor, s) {
+  const scaled = scaleRaster(frame, w, h, s);
+  const out = new Uint8Array(w * h * 4);
+  const dx = Math.round(anchor.x - anchor.x * s);
+  const dy = Math.round(anchor.y - anchor.y * s);
+  for (let y = 0; y < scaled.h; y++) {
+    const oy = y + dy;
+    if (oy < 0 || oy >= h) continue;
+    for (let x = 0; x < scaled.w; x++) {
+      const ox = x + dx;
+      if (ox < 0 || ox >= w) continue;
+      const so = (y * scaled.w + x) * 4;
+      if (scaled.data[so + 3] === 0) continue;
+      out.set(scaled.data.subarray(so, so + 4), (oy * w + ox) * 4);
+    }
+  }
+  return out;
+}
+
 for (const species of fs
   .readdirSync(path.join(ROOT, 'assets/species'), { withFileTypes: true })
   .filter((d) => d.isDirectory() && d.name !== 'common')
@@ -105,6 +135,7 @@ for (const species of fs
   const out = new Uint8Array(img.rgba); // copy; rows rewritten in place
 
   const rowMedianMass = {};
+  const anchor = meta.anchor ?? { x: Math.floor(FW / 2), y: FH - SAFE_PAD - 1 };
 
   for (const [animName, a] of Object.entries(meta.animations)) {
     // extract frames
@@ -170,15 +201,50 @@ for (const species of fs
     }
   }
 
-  // cross-row scale from mass, relative to walk
+  // Re-measure the cleaned rows before normalizing cross-row size. This must
+  // be rasterized into the sheet, not stored as animation metadata: drawing
+  // different actions at different scales causes a visible pop on transition.
+  for (const [animName, a] of Object.entries(meta.animations)) {
+    const masses = [];
+    for (let i = 0; i < a.frames; i++) {
+      const frame = new Uint8Array(FW * FH * 4);
+      for (let y = 0; y < FH; y++) {
+        const off = (((a.row * FH + y) * img.width) + i * FW) * 4;
+        frame.set(out.subarray(off, off + FW * 4), y * FW * 4);
+      }
+      const st = analyze(frame, FW, FH);
+      if (st) masses.push(st.mass);
+    }
+    if (masses.length) rowMedianMass[animName] = median(masses);
+  }
+
+  // Cross-row scale from mass, relative to walk. Apply it around the common
+  // feet anchor so every frame remains planted in exactly the same place.
   const ref = rowMedianMass.walk ?? median(Object.values(rowMedianMass));
   for (const [animName, a] of Object.entries(meta.animations)) {
     const m = rowMedianMass[animName];
     if (!m) continue;
     const [lo, hi] = AIRBORNE.has(animName) ? ROW_SCALE_CLAMP.airborne : ROW_SCALE_CLAMP.grounded;
     const s = Math.min(hi, Math.max(lo, Math.sqrt(ref / m)));
-    if (Math.abs(s - 1) < 0.03) delete a.scale;
-    else a.scale = Math.round(s * 100) / 100;
+    for (let i = 0; i < a.frames; i++) {
+      const frame = new Uint8Array(FW * FH * 4);
+      for (let y = 0; y < FH; y++) {
+        const off = (((a.row * FH + y) * img.width) + i * FW) * 4;
+        frame.set(out.subarray(off, off + FW * 4), y * FW * 4);
+      }
+      const st = analyze(frame, FW, FH);
+      if (!st) continue;
+      const cap = maxScaleAtAnchor(st, FW, FH, anchor);
+      // Leave one extra pixel before rounding. A scale exactly at the edge
+      // can round an antialiased outline back into the unsafe margin.
+      const safeScale = cap < s ? cap * 0.98 : s;
+      const normalized = scaleFrameAtAnchor(frame, FW, FH, anchor, safeScale);
+      for (let y = 0; y < FH; y++) {
+        const off = (((a.row * FH + y) * img.width) + i * FW) * 4;
+        out.set(normalized.subarray(y * FW * 4, (y + 1) * FW * 4), off);
+      }
+    }
+    delete a.scale;
   }
 
   if (DRY) {
@@ -188,7 +254,6 @@ for (const species of fs
   fs.writeFileSync(path.join(dir, 'sheet.png'), encodePNG(img.width, img.height, out));
   fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 2) + '\n');
   console.log(
-    `${species}: stabilized ${Object.keys(meta.animations).length} rows; scales:`,
-    Object.fromEntries(Object.entries(meta.animations).map(([k, v]) => [k, v.scale ?? 1]))
+    `${species}: stabilized ${Object.keys(meta.animations).length} rows; runtime scale: 1.0 for every animation`
   );
 }
